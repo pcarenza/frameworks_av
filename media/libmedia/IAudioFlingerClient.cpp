@@ -59,6 +59,9 @@ public:
 #endif
                         event != AudioSystem::INPUT_CLOSED) {
             const AudioSystem::OutputDescriptor *desc = (const AudioSystem::OutputDescriptor *)param2;
+        } else if (event != AudioSystem::OUTPUT_CLOSED && event != AudioSystem::INPUT_CLOSED) {
+            const AudioSystem::OutputDescriptor *desc =
+                    (const AudioSystem::OutputDescriptor *)param2;
             data.writeInt32(desc->samplingRate);
             data.writeInt32(desc->format);
             data.writeInt32(desc->channels);

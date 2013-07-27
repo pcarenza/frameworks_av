@@ -151,7 +151,7 @@ status_t AudioPolicyService::setDeviceConnectionState(audio_devices_t device,
         return BAD_VALUE;
     }
 
-    ALOGV("setDeviceConnectionState() tid %d", gettid());
+    ALOGV("setDeviceConnectionState()");
     Mutex::Autolock _l(mLock);
     return mpAudioPolicy->set_device_connection_state(mpAudioPolicy, device,
                                                       state, device_address);
@@ -180,7 +180,7 @@ status_t AudioPolicyService::setPhoneState(audio_mode_t state)
         return BAD_VALUE;
     }
 
-    ALOGV("setPhoneState() tid %d", gettid());
+    ALOGV("setPhoneState()");
 
     // TODO: check if it is more appropriate to do it in platform specific policy manager
     AudioSystem::setMode(state);
@@ -205,7 +205,7 @@ status_t AudioPolicyService::setForceUse(audio_policy_force_use_t usage,
     if (config < 0 || config >= AUDIO_POLICY_FORCE_CFG_CNT) {
         return BAD_VALUE;
     }
-    ALOGV("setForceUse() tid %d", gettid());
+    ALOGV("setForceUse()");
     Mutex::Autolock _l(mLock);
     mpAudioPolicy->set_force_use(mpAudioPolicy, usage, config);
     return NO_ERROR;
@@ -231,9 +231,10 @@ audio_io_handle_t AudioPolicyService::getOutput(audio_stream_type_t stream,
     if (mpAudioPolicy == NULL) {
         return 0;
     }
-    ALOGV("getOutput() tid %d", gettid());
+    ALOGV("getOutput()");
     Mutex::Autolock _l(mLock);
-    return mpAudioPolicy->get_output(mpAudioPolicy, stream, samplingRate, format, channelMask, flags);
+    return mpAudioPolicy->get_output(mpAudioPolicy, stream, samplingRate, format, channelMask,
+                                        flags);
 }
 
 status_t AudioPolicyService::startOutput(audio_io_handle_t output,
@@ -243,7 +244,7 @@ status_t AudioPolicyService::startOutput(audio_io_handle_t output,
     if (mpAudioPolicy == NULL) {
         return NO_INIT;
     }
-    ALOGV("startOutput() tid %d", gettid());
+    ALOGV("startOutput()");
     Mutex::Autolock _l(mLock);
     return mpAudioPolicy->start_output(mpAudioPolicy, output, stream, session);
 }
@@ -255,7 +256,7 @@ status_t AudioPolicyService::stopOutput(audio_io_handle_t output,
     if (mpAudioPolicy == NULL) {
         return NO_INIT;
     }
-    ALOGV("stopOutput() tid %d", gettid());
+    ALOGV("stopOutput()");
     Mutex::Autolock _l(mLock);
     return mpAudioPolicy->stop_output(mpAudioPolicy, output, stream, session);
 }
@@ -265,7 +266,7 @@ void AudioPolicyService::releaseOutput(audio_io_handle_t output)
     if (mpAudioPolicy == NULL) {
         return;
     }
-    ALOGV("releaseOutput() tid %d", gettid());
+    ALOGV("releaseOutput()");
     Mutex::Autolock _l(mLock);
     mpAudioPolicy->release_output(mpAudioPolicy, output);
 }
@@ -286,7 +287,7 @@ audio_io_handle_t AudioPolicyService::getInput(audio_source_t inputSource,
     Mutex::Autolock _l(mLock);
     // the audio_in_acoustics_t parameter is ignored by get_input()
     audio_io_handle_t input = mpAudioPolicy->get_input(mpAudioPolicy, inputSource, samplingRate,
-                                                       format, channelMask, (audio_in_acoustics_t) 0);
+                                                   format, channelMask, (audio_in_acoustics_t) 0);
 
     if (input == 0) {
         return input;
@@ -496,6 +497,15 @@ bool AudioPolicyService::isStreamActive(audio_stream_type_t stream, uint32_t inP
     return mpAudioPolicy->is_stream_active(mpAudioPolicy, stream, inPastMs);
 }
 
+bool AudioPolicyService::isStreamActiveRemotely(audio_stream_type_t stream, uint32_t inPastMs) const
+{
+    if (mpAudioPolicy == NULL) {
+        return 0;
+    }
+    Mutex::Autolock _l(mLock);
+    return mpAudioPolicy->is_stream_active_remotely(mpAudioPolicy, stream, inPastMs);
+}
+
 bool AudioPolicyService::isSourceActive(audio_source_t source) const
 {
     if (mpAudioPolicy == NULL) {
@@ -546,7 +556,7 @@ status_t AudioPolicyService::queryDefaultPreProcessing(int audioSession,
 }
 
 void AudioPolicyService::binderDied(const wp<IBinder>& who) {
-    ALOGW("binderDied() %p, tid %d, calling pid %d", who.unsafe_get(), gettid(),
+    ALOGW("binderDied() %p, calling pid %d", who.unsafe_get(),
             IPCThreadState::self()->getCallingPid());
 }
 
